@@ -1,0 +1,383 @@
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-47078483-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-47078483-4');
+</script>
+<title>
+Binance TRINITY-BOT v0.1 u.1
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="Bitcoin binance.com TRINITY-BOT" />
+<meta property="keywords" content="" />
+<meta property="og:description" content="Bitcoin binance.com TRINITY-BOT" />
+<meta property="og:image" content="http://funnymay.com/images/thumb.jpg" />
+<meta property="og:title" content="Binance TRINITY-BOT v0.1" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://funnymay.com/" />
+  <style type="text/css">
+   body {
+    font-family: sans-serif;
+    background-color: #ffffff;
+    color: #333537;
+   }
+   input, select {
+    background-color: #ffffff;
+    border: 1px solid #e7e8e9;
+    color: #333537;
+   }
+   b {
+    color: #3bb3e4;
+   }
+   td, div {
+    font-family: inherit;
+    font-size: 14px;
+   }
+   .priceup {
+    color: #53b987;
+   }
+   .pricedown {
+    color: #eb4d5c;
+   }
+   .pricenotchanged {
+    color: #c0c1c2;
+   }
+   .tab_cell {
+    color: #353637;
+    width: 80px;
+	padding:2px;
+	text-align: center;
+   }
+   .tab_cell_ask {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	 background-color: #f7c8cd;
+   }
+   .tab_cell_bid {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	background-color: #cae8d9;
+   }
+  </style>
+</head>
+<script type="text/javascript" src="/js/xhr.js"></script>
+<script type="text/javascript">
+//Global Array
+var _g = [];
+
+//hostString for working anywhere
+_g["host"] = window.location.protocol+"//"+window.location.hostname;
+
+//Array of pairs
+_g["pairs"] = [];
+
+//Array of symbols
+_g["symbols"] = [];
+
+//Counter Activity
+_g["iFoo"] = 1;
+
+//Progress Bar
+_g["iProg"] = 0;
+
+//Assets
+_g["bases"] = [];
+_g["quotes"] = [];
+
+//Buy-Buy-Sell trinity pairs
+_g["bbs"] = [];
+
+//Buy-Sell-Sell trinity pairs
+_g["bss"] = [];
+
+</script>
+
+<script type="text/javascript" >
+/*Logs*/
+
+function log(str) {
+
+var timeData = new Date;
+
+timeData = "[" + timeData.getFullYear() + "-" +
+("00" + (timeData.getMonth() + 1)).slice(-2) + "-" +
+("00" + timeData.getDate()).slice(-2) +
+"] (" +
+("00" + timeData.getHours()).slice(-2) + ":" +
+("00" + timeData.getMinutes()).slice(-2) + ":" +
+("00" + timeData.getSeconds()).slice(-2) +
+")";
+
+document.getElementById('logs').innerHTML += timeData + " " + str + "<br>";
+}
+
+/*Logs*/
+</script>
+<script type="text/javascript" >
+/*Get Trinity Pairs*/
+
+function getPairs() {
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getRules";
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+	if(req.status == 200) {
+		var rules = JSON.parse(req.responseText);
+		var count = 0;
+		count = rules["coins"].length;
+		for (i = 0; i<count;i++)
+		{
+			_g["symbols"][i] = rules["coins"][i];
+		}
+
+		var j = 0;
+		var symbol = "";
+		
+		for (var k in rules["pairs"])
+		{
+			_g["pairs"][j] = k;
+			v = k.split('_');
+			_g["bases"][j] = v[0];
+			_g["quotes"][j] = v[1];
+			j++;
+		}
+		
+		count = _g["bases"].length;
+		var m=0;
+		var n=0;
+		var coin = top.document.runBot.coin.value;
+
+		for (var i = 0; i < count;i++)
+		{
+			for (var j = 0;j < count;j++)
+			{
+				for (var k = 0; k < count;k++) 
+				{
+					if (_g["bases"][i] == _g["quotes"][j] && _g["bases"][j] == _g["bases"][k] && _g["quotes"][i] == _g["quotes"][k])
+					{
+						_g["bbs"][n] = [];
+						_g["bbs"][n][0] = _g["bases"][i] +"_"+ _g["quotes"][i];
+						_g["bbs"][n][1] = _g["bases"][j] +"_"+ _g["quotes"][j];
+						_g["bbs"][n][2] = _g["bases"][k] +"_"+ _g["quotes"][k];
+						n++;
+					}
+					if (_g["bases"][i] == _g["bases"][j] && _g["quotes"][j] == _g["bases"][k] && _g["quotes"][i] == _g["quotes"][k])
+					{
+						_g["bss"][m] = [];
+						_g["bss"][m][0] = _g["bases"][i] +"_"+ _g["quotes"][i];
+						_g["bss"][m][1] = _g["bases"][j] +"_"+ _g["quotes"][j];
+						_g["bss"][m][2] = _g["bases"][k] +"_"+ _g["quotes"][k];
+						m++;	
+					}
+				}
+			}
+		}
+
+	}
+document.getElementById('progress_bar').innerHTML += "&#9618;";
+}
+
+/*Get Exchange Info*/
+</script>
+<script type="text/javascript" >
+/*Refresh Data*/
+
+function refreshData () {
+
+	if (_g["iProg"] >= 74) {
+		document.getElementById('progress_bar').innerHTML = "Progress: ";
+		_g["iProg"] = 0;
+	}
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getPrices";
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+	if(req.status == 200) {
+		var prices = JSON.parse(req.responseText);
+	
+		var ech = "";
+		var vol1 = 0.0, vol2 = 0.0, vol3 = 0.0;
+		var nm0 = "", nm1 = "", nm2 = "";
+
+		var fee = parseFloat(top.document.runBot.fee.value);
+		var coin = top.document.runBot.coin.value;
+		var v;
+		var res_arr = [];
+		var j =0;
+		
+		for(var i = 0; i < _g["bbs"].length; i++)
+		{
+			//buy-buy-sell
+			nm0 = _g["bbs"][i][0];
+			v = nm0 .split('_');
+			if (v[1] == coin)
+			{
+				vol1 = (1.0 / parseFloat(prices['data'][nm0]) ) * (1.0-fee/100.0);
+				
+				nm1 = _g["bbs"][i][1];
+				vol2 = (vol1 / parseFloat(prices['data'][nm1])) * (1.0-fee/100.0);
+				
+				nm2 = _g["bbs"][i][2];
+				vol3 = vol2 * parseFloat(prices['data'][nm2]) * (1.0-fee/100.0);
+				
+				res_arr[j] = [];
+				res_arr[j][0] = nm0;
+				res_arr[j][1] = prices['data'][nm0];
+				res_arr[j][2] = nm1;
+				res_arr[j][3] = prices['data'][nm1];
+				res_arr[j][4] = nm2;
+				res_arr[j][5] = prices['data'][nm2];
+				res_arr[j][6] = vol3;
+				j++;
+
+			}
+		}
+
+		for(var i = 0; i < _g["bss"].length; i++){
+			
+			//buy-sell-sell
+			nm0 = _g["bss"][i][0];
+			v = nm0 .split('_');
+			if (v[1] == coin)
+			{
+				vol1 = (1.0 / parseFloat(prices['data'][nm0]) ) * (1.0-fee/100.0);
+				
+				nm1 = _g["bss"][i][1];
+				vol2 = vol1 * parseFloat(prices['data'][nm1]) * (1.0-fee/100.0);
+				
+				nm2 = _g["bss"][i][2];
+				vol3 = vol2 * parseFloat(prices['data'][nm2]) * (1.0-fee/100.0);
+
+				res_arr[j] = [];
+				res_arr[j][0] = nm0;
+				res_arr[j][1] = prices['data'][nm0];
+				res_arr[j][2] = nm1;
+				res_arr[j][3] = prices['data'][nm1];
+				res_arr[j][4] = nm2;
+				res_arr[j][5] = prices['data'][nm2];
+				res_arr[j][6] = vol3;
+				j++;
+
+			}
+		}
+		
+		res_arr.sort(function(a,b){
+			 if (a[6] < b[6]){
+				return 1;
+			 }else if (a[6] > b[6]) {
+				return  -1;
+			 }else{
+				return 0;
+			 }
+		})
+
+		for(var i = 0; i < res_arr.length; i++)
+		{
+			ech += res_arr[i][0] + '(' + res_arr[i][1] + ') &rarr; ' + res_arr[i][2] + '(' + res_arr[i][3] + ') &rarr; ' + res_arr[i][4] + '(' + res_arr[i][5] + ') = ' + res_arr[i][6] + '<br>';
+		}
+		
+		document.getElementById('view').innerHTML = ech;
+	}
+	
+	_g["iProg"]++;
+	document.getElementById('progress_bar').innerHTML += "&#9618;";
+}
+
+/*Refresh Data*/
+</script>
+<script type="text/javascript" >
+/*Page Structure*/
+
+function initPage() {
+
+	getPairs();
+	var msec = 10000;
+	setInterval(refreshData, msec);
+
+log("TRINITY-BOT is ready.");
+}
+
+/*Page Structure*/
+</script>
+
+<body onload="initPage();">
+	<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+	<tr>
+	<td width='100%'>
+
+	<center>
+
+		<table cellpadding='0' cellspacing='0' border='0' width='940'>
+		<tr>
+		<td width='940'>
+
+		<form name='runBot' method='get' action='/'>
+			
+			<table>
+			<tr>
+			<td>
+				<select name='exchange' style='width:80px;'>
+				  <option value='binance'>Binance</option>
+				</select>
+			</td>
+			<td>
+				<select name='coin' style='width:80px;'>
+					<option value='btc'>BTC</option>
+					<option value='bnb'>BNB</option>
+					<option value='eth'>ETH</option>
+					<option value='tusd'>TUSD</option>
+					<option value='usdt'>USDT</option>
+					<option value='usds'>USDS</option>
+					<option value='usdc'>USDC</option>
+					<option value='pax'>PAX</option>
+				</select>
+			</td>
+			<td align='right'>Fee, %&nbsp;
+			</td>
+			<td><input type='number' step='any' name='fee' placeholder='0.1' value='0.1' style='width:80px;'>
+			</td>
+			</tr>
+			<tr>
+			<td colspan='4'>
+				<div id='progress_bar' style='margin-top: 10px;'>Progress: </div>
+				<div id='logs'>LOGS:<br>Welcome to Trinity-Bot. Loading...<br></div>
+				<div id='view'>Loading...</div>
+			</td>
+			</tr>
+			</table>
+			
+		</form>
+
+		</td>
+		</tr>
+		</table>
+
+	</center>
+
+	</td>
+	</tr>
+	</table>
+</body>
+</html>	
